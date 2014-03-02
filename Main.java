@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener {
 
+	final String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "HoleInTheWall" + ChatColor.DARK_PURPLE + "] " + ChatColor.GREEN;
+	
 	ArrayList<String> queue = new ArrayList<String>();
 
 	public void onEnable() {
@@ -40,12 +42,12 @@ public class Main extends JavaPlugin implements Listener {
 			{
 				if (queue.contains(p.getName()))
 				{
-					p.sendMessage(ChatColor.RED + "You are already in the queue!");
+					p.sendMessage(prefix + ChatColor.RED + "You are already in the queue!");
 				}
 				else
 				{
 					queue.add(p.getName());
-					p.sendMessage(ChatColor.GREEN + "Successfully joined the queue!");
+					p.sendMessage(prefix + "Successfully joined the queue!");
 				}
 			}
 		}
