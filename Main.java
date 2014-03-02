@@ -10,6 +10,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener {
 
+	ArrayList<String> queue = new ArrayList<String>();
+
 	public void onEnable() {
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
 		getConfig().options().copyDefaults(true);
@@ -33,6 +35,18 @@ public class Main extends JavaPlugin implements Listener {
 			{
 				this.helpScreen(p);
 				return true;
+			}
+			else if (args[0].equalsIgnoreCase("join"))
+			{
+				if (queue.contains(p.getName()))
+				{
+					p.sendMessage(ChatColor.RED + "You are already in the queue!");
+				}
+				else
+				{
+					queue.add(p.getName());
+					p.sendMessage(ChatColor.GREEN + "Successfully joined the queue!");
+				}
 			}
 		}
 		return false;
