@@ -47,7 +47,7 @@ public class Main extends JavaPlugin implements Listener {
 				else
 				{
 					queue.add(p.getName());
-					p.sendMessage(prefix + "Successfully joined the queue!");
+					p.sendMessage(prefix + "Successfully joined the queue! Currently " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4" + ChatColor.GREEN + " people in the queue.");
 				}
 			}
 		}
