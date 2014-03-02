@@ -11,7 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin implements Listener {
-
+	
 	final String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "HoleInTheWall" + ChatColor.DARK_PURPLE + "] " + ChatColor.GREEN;
 	
 	ArrayList<String> queue = new ArrayList<String>();
@@ -35,22 +35,18 @@ public class Main extends JavaPlugin implements Listener {
 		Player p = (Player) sender;
 		if (cmd.getName().equalsIgnoreCase("hitw"))
 		{
-			if (args.length < 1 || args[0].equalsIgnoreCase("help"))
+			if (args.length != 1 || args[0].equalsIgnoreCase("help"))
 			{
 				this.helpScreen(p);
 				return true;
 			}
 			else if (args[0].equalsIgnoreCase("join"))
 			{
-				if (queue.contains(p.getName()))
-				{
-					p.sendMessage(prefix + ChatColor.RED + "You are already in the queue!");
-				}
-				else
-				{
-					queue.add(p.getName());
-					p.sendMessage(prefix + "Successfully joined the queue! Currently " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4" + ChatColor.GREEN + " people in the queue.");
-				}
+				this.join(p);
+			}
+			else if (args[0].equalsIgnoreCase("leave"))
+			{
+				
 			}
 		}
 		return false;
@@ -63,11 +59,31 @@ public class Main extends JavaPlugin implements Listener {
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw help" + ChatColor.GREEN + " - Displays this help screen.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw join" + ChatColor.GREEN + " - Join the queue.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw leave" + ChatColor.GREEN + " - Leave the game or queue you are in.");
-		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");
-		if(p.hasPermission(hitw.admin){
-			p.sendMessage(ChatColor.DARK_RED + "/hitw admin" + ChatColor.GREEN + " - Displays the administration help screen.");
+		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");		
+		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "**************************");
+	}
+	
+	public void join(Player p)
+	{
+		if (queue.contains(p.getName()))
+		{
+			p.sendMessage(prefix + ChatColor.RED + "You are already in the queue!");
+		}
+		else
+		{
+			queue.add(p.getName());
+			p.sendMessage(prefix + "Successfully joined the queue! " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+			for (int i = 0; i < queue.size(); i++)
+			{
+				Player t = Bukkit.getPlayer(queue.get(i));
+				if (t != p)
+				{
+					t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+				}
+			}
 		}
 	}
+	
 	public void adminHelpScreen(Player p){
 		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******" + ChatColor.GREEN + " Hole In The Wall - Administration Help " + ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******");
 		p.sendMessage(ChatColor.DARK_RED + "/hitw setspawn" + ChatColor.GREEN + " - .");
