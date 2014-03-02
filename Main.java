@@ -63,6 +63,16 @@ public class Main extends JavaPlugin implements Listener {
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw help" + ChatColor.GREEN + " - Displays this help screen.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw join" + ChatColor.GREEN + " - Join the queue.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw leave" + ChatColor.GREEN + " - Leave the game or queue you are in.");
-		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");		
+		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");
+		if(p.hasPermission(hitw.admin){
+			p.sendMessage(ChatColor.DARK_RED + "/hitw admin" + ChatColor.GREEN + " - Displays the administration help screen.");
+		}
+	}
+	public void adminHelpScreen(Player p){
+		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******" + ChatColor.GREEN + " Hole In The Wall - Administration Help " + ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******");
+		p.sendMessage(ChatColor.DARK_RED + "/hitw setspawn" + ChatColor.GREEN + " - .");
+		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
+		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
+		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
 	}
 }
