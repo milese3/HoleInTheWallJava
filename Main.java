@@ -231,6 +231,7 @@ public class Main extends JavaPlugin implements Listener {
 			queue.remove(t.getName());
 			t.teleport(loc);
 			t.setGameMode(GameMode.ADVENTURE);
+			t.getInventory().clear();
 		}
 		
 		//At the end
