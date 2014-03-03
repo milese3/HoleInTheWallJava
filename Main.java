@@ -7,12 +7,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.sk89q.worldedit.Vector;
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
+import com.sk89q.worldedit.bukkit.selections.Selection;
 
 public class Main extends JavaPlugin implements Listener {
 	
@@ -59,7 +65,7 @@ public class Main extends JavaPlugin implements Listener {
 				this.leave(p);
 				return true;
 			}
-			else if (args[0].equalsIgnoreCase("waiting") || args[0].equalsIgnoreCase("ingame"))
+			else if (args[0].equalsIgnoreCase("waiting") || args[0].equalsIgnoreCase("ingame") || args[0].equalsIgnoreCase("wall"))
 			{
 				if (p.hasPermission("hitw.admin"))
 				{
@@ -91,7 +97,8 @@ public class Main extends JavaPlugin implements Listener {
 		if (p.hasPermission("hitw.admin"))
 		{
 			p.sendMessage(ChatColor.RED + "/hitw waiting" + ChatColor.DARK_RED + " - Set the waiting room spawn.");	
-			p.sendMessage(ChatColor.RED + "/hitw ingame" + ChatColor.DARK_RED + " - Set the in game spawn.");				
+			p.sendMessage(ChatColor.RED + "/hitw ingame" + ChatColor.DARK_RED + " - Set the in game spawn.");	
+			p.sendMessage(ChatColor.RED + "/hitw wall" + ChatColor.DARK_RED + " - Set the wall with a world edit selection.");				
 		}
 		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*************************************");
 	}
@@ -170,6 +177,7 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	
 	
+	@SuppressWarnings("deprecation")
 	public void setspawn(String type, Player p)
 	{
 		if (type.equalsIgnoreCase("waiting"))
@@ -182,39 +190,95 @@ public class Main extends JavaPlugin implements Listener {
 			getConfig().set("waiting.z", loc.getZ());
 			getConfig().set("waiting.yaw", loc.getYaw());
 			getConfig().set("waiting.pitch", loc.getPitch());
-			saveConfig();
 			p.sendMessage(prefix + "Waiting room spawn set to your current location!");
-			if (getConfig().getBoolean("ingameset"))
+			if (getConfig().getBoolean("ingameset") && getConfig().getBoolean("wallset"))
 			{
 				getConfig().set("setupcorrectly", true);
 			}
 		}
+		
+		
 		else if (type.equalsIgnoreCase("ingame"))
 		{
 			Location loc = p.getLocation();
-			getConfig().set("ingameset", true);
 			getConfig().set("ingame.world", loc.getWorld().getName().toString());
 			getConfig().set("ingame.x", loc.getX());
 			getConfig().set("ingame.y", loc.getY());
 			getConfig().set("ingame.z", loc.getZ());
 			getConfig().set("ingame.yaw", loc.getYaw());
 			getConfig().set("ingame.pitch", loc.getPitch());
-			saveConfig();
+			getConfig().set("ingameset", true);
 			p.sendMessage(prefix + "In game spawn set to your current location!");
-			if (getConfig().getBoolean("waitingset"))
+			if (getConfig().getBoolean("waitingset") && getConfig().getBoolean("wallset"))
 			{
 				getConfig().set("setupcorrectly", true);
 			}
+		}
+		
+		
+		else if (type.equalsIgnoreCase("wall"))
+		{
+			WorldEditPlugin worldEditPlugin = null;
+            worldEditPlugin = (WorldEditPlugin) Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+            if (worldEditPlugin == null){
+                p.sendMessage(prefix + ChatColor.RED + "Please install World Edit!");
+            }
+            else
+            {
+	            Selection sel = worldEditPlugin.getSelection(p);
+	            if (sel == null) {
+	            	p.sendMessage(prefix + ChatColor.RED + "Please select an area.");
+	            }
+	            else
+	            {
+		            if (sel instanceof CuboidSelection)
+		            {
+		                Vector min = sel.getNativeMinimumPoint();
+		                Vector max = sel.getNativeMaximumPoint();
+		                Material mat = Material.STAINED_CLAY;
+		                for(int x = min.getBlockX();x <= max.getBlockX(); x=x+1){
+		                    for(int y = min.getBlockY();y <= max.getBlockY(); y=y+1){
+		                        for(int z = min.getBlockZ();z <= max.getBlockZ(); z=z+1){
+		                            Location tmpblock = new Location(p.getWorld(), x, y, z);
+		                           	tmpblock.getBlock().setType(mat);
+		                           	tmpblock.getBlock().setData((byte) 5);
+		                        }
+		                    }
+		                }
+		                
+		                int xmin = min.getBlockX();
+		                int xmax = max.getBlockX();
+		                int ymin = min.getBlockY();
+		                int ymax = max.getBlockY();
+		                int zmin = min.getBlockZ();
+		                int zmax = max.getBlockZ();
+		                
+		                getConfig().set("wall.world", p.getWorld().getName());
+		                
+		                getConfig().set("wall.min.x", xmin);
+		                getConfig().set("wall.min.y", ymin);
+		                getConfig().set("wall.min.z", zmin);
+		                
+		                getConfig().set("wall.max.x", xmax);
+		                getConfig().set("wall.max.y", ymax);
+		                getConfig().set("wall.max.z", zmax);
+		                
+		                getConfig().set("wallset", true);
+						p.sendMessage(prefix + "Successfully set the wall to your current selection");
+		            }
+		            else
+		            {
+		            	p.sendMessage(prefix + ChatColor.RED + "That is not a cuboid selection.");
+		            }
+	            }
+            }
 		}
 		if (getConfig().getBoolean("setupcorrectly"))
 		{
 			p.sendMessage(prefix + "The game is now completely set up correctly and ready to play!");
 		}
+		saveConfig();
 	}
-	
-	
-	
-	
 	
 	public void gameLoop()
 	{
@@ -234,12 +298,14 @@ public class Main extends JavaPlugin implements Listener {
 			t.getInventory().clear();
 		}
 		
+		
+		
 		//At the end
 		ingame = false;
 		for (int i = 0; i < playerno.size(); i++)
 		{
 			Player t = Bukkit.getPlayer(playerno.get(i + ""));
-			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
 		}
 		playerno.clear();
 	}
