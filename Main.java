@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -55,7 +57,7 @@ public class Main extends JavaPlugin implements Listener {
 			{
 				if (p.hasPermission("hitw.admin"))
 				{
-					this.setspawn(args[0]);
+					this.setspawn(args[0], p);
 					return true;
 				}
 				else
@@ -92,8 +94,7 @@ public class Main extends JavaPlugin implements Listener {
 	{
 		if (!(getConfig().getBoolean("setupcorrectly")))
 		{
-			p.sendMessage(prefix + ChatColor.RED + "Error: The game has not been setup correctly. Please ask an administrator to fix this.");
-			
+			p.sendMessage(prefix + ChatColor.RED + "Error: The game has not been setup correctly. Please ask an administrator to fix this.");			
 		}
 		else if (queue.contains(p.getName()))
 		{
@@ -149,15 +150,45 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	
 	
-	public void setspawn(String type)
+	public void setspawn(String type, Player p)
 	{
 		if (type.equalsIgnoreCase("waiting"))
 		{
-			//Set waiting spawn
+			Location loc = p.getLocation();
+			getConfig().set("waitingset", true);
+			getConfig().set("waiting.world", loc.getWorld().getName().toString());
+			getConfig().set("waiting.x", loc.getX());
+			getConfig().set("waiting.y", loc.getY());
+			getConfig().set("waiting.z", loc.getZ());
+			getConfig().set("waiting.yaw", loc.getYaw());
+			getConfig().set("waiting.pitch", loc.getPitch());
+			saveConfig();
+			p.sendMessage(prefix + "Waiting room spawn set to your current location!");
+			if (getConfig().getBoolean("ingameset"))
+			{
+				getConfig().set("setupcorrectly", true);
+			}
 		}
 		else if (type.equalsIgnoreCase("ingame"))
 		{
-			//Set in game spawn
+			Location loc = p.getLocation();
+			getConfig().set("ingameset", true);
+			getConfig().set("ingame.world", loc.getWorld().getName().toString());
+			getConfig().set("ingame.x", loc.getX());
+			getConfig().set("ingame.y", loc.getY());
+			getConfig().set("ingame.z", loc.getZ());
+			getConfig().set("ingame.yaw", loc.getYaw());
+			getConfig().set("ingame.pitch", loc.getPitch());
+			saveConfig();
+			p.sendMessage(prefix + "In game spawn set to your current location!");
+			if (getConfig().getBoolean("waitingset"))
+			{
+				getConfig().set("setupcorrectly", true);
+			}
+		}
+		if (getConfig().getBoolean("setupcorrectly"))
+		{
+			p.sendMessage(prefix + "The game is now completely set up correctly and ready to play!");
 		}
 	}
 	
@@ -167,9 +198,17 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public void gameLoop()
 	{
+		World w = Bukkit.getWorld(getConfig().getString("waiting.world"));
+		double x = getConfig().getDouble("waiting.x");
+		double y = getConfig().getDouble("waiting.y");
+		double z = getConfig().getDouble("waiting.z");
+		float yaw = (float) getConfig().getDouble("waiting.yaw");
+		float pitch = (float) getConfig().getDouble("waiting.pitch");
+		Location loc = new Location(w, x, y, z, yaw, pitch);
 		for (int i = 0; i < queue.size(); i++)
 		{
 			Player t = Bukkit.getPlayer(queue.get(i));
+			t.teleport(loc);
 		}
 	}
 	
