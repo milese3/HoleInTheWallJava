@@ -1,9 +1,11 @@
 package me.JoelyMo101.holeinthewall;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -17,7 +19,11 @@ public class Main extends JavaPlugin implements Listener {
 	final String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "HoleInTheWall" + ChatColor.DARK_PURPLE + "] " + ChatColor.GREEN;
 	final String noperms = ChatColor.RED + "You do not have permission to perform this command!";
 	
+	public boolean ingame = false;
+	
 	ArrayList<String> queue = new ArrayList<String>();
+	ArrayList<String> players = new ArrayList<String>();
+	HashMap<String, String> playerno = new HashMap<String, String>();
 
 	public void onEnable() {
 		Bukkit.getServer().getPluginManager().registerEvents(this, this);
@@ -87,7 +93,7 @@ public class Main extends JavaPlugin implements Listener {
 			p.sendMessage(ChatColor.RED + "/hitw waiting" + ChatColor.DARK_RED + " - Set the waiting room spawn.");	
 			p.sendMessage(ChatColor.RED + "/hitw ingame" + ChatColor.DARK_RED + " - Set the in game spawn.");				
 		}
-		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "**************************************");
+		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*************************************");
 	}
 	
 	public void join(Player p)
@@ -100,30 +106,44 @@ public class Main extends JavaPlugin implements Listener {
 		{
 			p.sendMessage(prefix + ChatColor.RED + "You are already in the queue!");
 		}
-		else if (queue.size() >= 4)
-		{
-			p.sendMessage(prefix + ChatColor.RED + "Error: The game has already started.");
-		}
 		else
 		{
-			queue.add(p.getName());
-			p.sendMessage(prefix + "Successfully joined the queue! " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
-			for (int i = 0; i < queue.size(); i++)
+			boolean alreadyin = false;
+			for (int i = 0; i < playerno.size(); i++)
 			{
-				Player t = Bukkit.getPlayer(queue.get(i));
-				if (t != p)
+				Player t = Bukkit.getPlayer(playerno.get(i + ""));
+				if (p == t)
 				{
-					t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+					alreadyin = true;
 				}
 			}
-			if (queue.size() >= 4)
+			if (alreadyin)
 			{
+				p.sendMessage(prefix + ChatColor.RED + "You are already in a game!");
+			}
+			else
+			{
+				queue.add(p.getName());
+				p.sendMessage(prefix + "Successfully joined the queue! " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
 				for (int i = 0; i < queue.size(); i++)
 				{
 					Player t = Bukkit.getPlayer(queue.get(i));
-					t.sendMessage(prefix + "Starting game...");
+					if (t != p)
+					{
+						t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+					}
 				}
-				this.gameLoop();
+				if (queue.size() >= 4 && !(ingame))
+				{
+					for (int i = 0; i < 4; i++)
+					{
+						Player t = Bukkit.getPlayer(queue.get(i));
+						t.sendMessage(prefix + "Starting game...");
+						playerno.put(i + "", t.getName());
+					}
+					ingame = true;
+					this.gameLoop();
+				}
 			}
 		}
 	}
@@ -205,11 +225,22 @@ public class Main extends JavaPlugin implements Listener {
 		float yaw = (float) getConfig().getDouble("waiting.yaw");
 		float pitch = (float) getConfig().getDouble("waiting.pitch");
 		Location loc = new Location(w, x, y, z, yaw, pitch);
-		for (int i = 0; i < queue.size(); i++)
+		for (int i = 0; i < playerno.size(); i++)
 		{
-			Player t = Bukkit.getPlayer(queue.get(i));
+			Player t = Bukkit.getPlayer(playerno.get(i + ""));
+			queue.remove(t.getName());
 			t.teleport(loc);
+			t.setGameMode(GameMode.ADVENTURE);
 		}
+		
+		//At the end
+		ingame = false;
+		for (int i = 0; i < playerno.size(); i++)
+		{
+			Player t = Bukkit.getPlayer(playerno.get(i + ""));
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
+		}
+		playerno.clear();
 	}
 	
 	
