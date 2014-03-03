@@ -305,7 +305,7 @@ public class Main extends JavaPlugin implements Listener {
 		for (int i = 0; i < playerno.size(); i++)
 		{
 			Player t = Bukkit.getPlayer(playerno.get(i + ""));
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
 		}
 		playerno.clear();
 	}
