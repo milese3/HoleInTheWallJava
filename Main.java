@@ -46,7 +46,7 @@ public class Main extends JavaPlugin implements Listener {
 			}
 			else if (args[0].equalsIgnoreCase("leave"))
 			{
-				
+				this.leave(p);
 			}
 		}
 		return false;
@@ -60,7 +60,7 @@ public class Main extends JavaPlugin implements Listener {
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw join" + ChatColor.GREEN + " - Join the queue.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw leave" + ChatColor.GREEN + " - Leave the game or queue you are in.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");		
-		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "**************************");
+		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "**************************************");
 	}
 	
 	public void join(Player p)
@@ -84,9 +84,30 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 	
+	public void leave(Player p)
+	{
+		if (!(queue.contains(p.getName())))
+		{
+			p.sendMessage(prefix + ChatColor.RED + "You not in the queue!");
+		}
+		else
+		{
+			queue.remove(p.getName());
+			p.sendMessage(prefix + "Successfully left the queue!");
+			for (int i = 0; i < queue.size(); i++)
+			{
+				Player t = Bukkit.getPlayer(queue.get(i));
+				if (t != p)
+				{
+					t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " left the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+				}
+			}
+		}
+	}
+	
 	public void adminHelpScreen(Player p){
 		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******" + ChatColor.GREEN + " Hole In The Wall - Administration Help " + ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******");
-		p.sendMessage(ChatColor.DARK_RED + "/hitw setspawn" + ChatColor.GREEN + " - .");
+		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
 		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
 		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
 		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
