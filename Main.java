@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Main extends JavaPlugin implements Listener {
 	
 	final String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "HoleInTheWall" + ChatColor.DARK_PURPLE + "] " + ChatColor.GREEN;
+	final String noperms = ChatColor.RED + "You do not have permission to perform this command!";
 	
 	ArrayList<String> queue = new ArrayList<String>();
 
@@ -43,10 +44,30 @@ public class Main extends JavaPlugin implements Listener {
 			else if (args[0].equalsIgnoreCase("join"))
 			{
 				this.join(p);
+				return true;
 			}
 			else if (args[0].equalsIgnoreCase("leave"))
 			{
 				this.leave(p);
+				return true;
+			}
+			else if (args[0].equalsIgnoreCase("waiting") || args[0].equalsIgnoreCase("ingame"))
+			{
+				if (p.hasPermission("hitw.admin"))
+				{
+					this.setspawn(args[0]);
+					return true;
+				}
+				else
+				{
+					p.sendMessage(noperms);
+					return true;
+				}
+			}
+			else 
+			{
+				this.helpScreen(p);
+				return true;
 			}
 		}
 		return false;
@@ -59,15 +80,28 @@ public class Main extends JavaPlugin implements Listener {
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw help" + ChatColor.GREEN + " - Displays this help screen.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw join" + ChatColor.GREEN + " - Join the queue.");
 		p.sendMessage(ChatColor.DARK_GREEN + "/hitw leave" + ChatColor.GREEN + " - Leave the game or queue you are in.");
-		p.sendMessage(ChatColor.DARK_GREEN + "/hitw " + ChatColor.GREEN + " - Leave the game or queue you are in.");		
+		if (p.hasPermission("hitw.admin"))
+		{
+			p.sendMessage(ChatColor.RED + "/hitw waiting" + ChatColor.DARK_RED + " - Set the waiting room spawn.");	
+			p.sendMessage(ChatColor.RED + "/hitw ingame" + ChatColor.DARK_RED + " - Set the in game spawn.");				
+		}
 		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "**************************************");
 	}
 	
 	public void join(Player p)
 	{
-		if (queue.contains(p.getName()))
+		if (!(getConfig().getBoolean("setupcorrectly")))
+		{
+			p.sendMessage(prefix + ChatColor.RED + "Error: The game has not been setup correctly. Please ask an administrator to fix this.");
+			
+		}
+		else if (queue.contains(p.getName()))
 		{
 			p.sendMessage(prefix + ChatColor.RED + "You are already in the queue!");
+		}
+		else if (queue.size() >= 4)
+		{
+			p.sendMessage(prefix + ChatColor.RED + "Error: The game has already started.");
 		}
 		else
 		{
@@ -81,6 +115,15 @@ public class Main extends JavaPlugin implements Listener {
 					t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
 				}
 			}
+			if (queue.size() >= 4)
+			{
+				for (int i = 0; i < queue.size(); i++)
+				{
+					Player t = Bukkit.getPlayer(queue.get(i));
+					t.sendMessage(prefix + "Starting game...");
+				}
+				this.gameLoop();
+			}
 		}
 	}
 	
@@ -88,7 +131,7 @@ public class Main extends JavaPlugin implements Listener {
 	{
 		if (!(queue.contains(p.getName())))
 		{
-			p.sendMessage(prefix + ChatColor.RED + "You not in the queue!");
+			p.sendMessage(prefix + ChatColor.RED + "You are not in the queue!");
 		}
 		else
 		{
@@ -105,11 +148,30 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public void adminHelpScreen(Player p){
-		p.sendMessage(ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******" + ChatColor.GREEN + " Hole In The Wall - Administration Help " + ChatColor.GREEN + "" + ChatColor.STRIKETHROUGH + "*******");
-		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
-		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
-		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
-		p.sendMessage(ChatColor.DARK_RED + "/hitw " + ChatColor.GREEN + " - .");
+	
+	public void setspawn(String type)
+	{
+		if (type.equalsIgnoreCase("waiting"))
+		{
+			//Set waiting spawn
+		}
+		else if (type.equalsIgnoreCase("ingame"))
+		{
+			//Set in game spawn
+		}
 	}
+	
+	
+	
+	
+	
+	public void gameLoop()
+	{
+		for (int i = 0; i < queue.size(); i++)
+		{
+			Player t = Bukkit.getPlayer(queue.get(i));
+		}
+	}
+	
+	
 }
