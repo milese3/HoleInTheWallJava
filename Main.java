@@ -1,8 +1,7 @@
-package me.JoelyMo101.HoleInTheWall;
+package me.JoelyMo101.holeinthewall;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,10 +24,14 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 
 		final String prefix = ChatColor.DARK_PURPLE + "[" + ChatColor.LIGHT_PURPLE + "HoleInTheWall" + ChatColor.DARK_PURPLE + "] " + ChatColor.GREEN;
 		final String noperms = ChatColor.RED + "You do not have permission to perform this command!";
-		
+
 		public int taskID;
+		public int maxplayers = 3;		
 
 		public boolean ingame = false;
+
+		public int round = 0;
+		public boolean alive = true;
 
 		ArrayList<String> queue = new ArrayList<String>();
 		ArrayList<String> players = new ArrayList<String>();
@@ -134,18 +137,18 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 				else
 				{
 					queue.add(p.getName());
-					p.sendMessage(prefix + "Successfully joined the queue! " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+					p.sendMessage(prefix + "Successfully joined the queue! " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + maxplayers);
 					for (int i = 0; i < queue.size(); i++)
 					{
 						Player t = Bukkit.getPlayer(queue.get(i));
 						if (t != p)
 						{
-							t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+							t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " joined the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + maxplayers);
 						}
 					}
-					if (queue.size() >= 4 && !(ingame))
+					if (queue.size() >= maxplayers && !(ingame))
 					{
-						for (int i = 0; i < 4; i++)
+						for (int i = 0; i < maxplayers; i++)
 						{
 							Player t = Bukkit.getPlayer(queue.get(i));
 							t.sendMessage(prefix + "Starting game...");
@@ -173,7 +176,7 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 					Player t = Bukkit.getPlayer(queue.get(i));
 					if (t != p)
 					{
-						t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " left the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + "4");
+						t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " left the queue. " + ChatColor.GOLD + queue.size() + ChatColor.YELLOW + "/" + ChatColor.GOLD + maxplayers);
 					}
 				}
 			}
@@ -282,8 +285,9 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 			}
 			saveConfig();
 		}
-		public int round = 0;
-		public boolean alive = true;
+		
+		
+		@SuppressWarnings("deprecation")
 		public void gameLoop()
 		{
 			World w = Bukkit.getWorld(getConfig().getString("waiting.world"));
@@ -301,12 +305,12 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 				t.setGameMode(GameMode.ADVENTURE);
 				t.getInventory().clear();
 			}
-			for(int i = 0; i <= 3; i++){
+			for(int i = 0; i <= maxplayers; i++){
 				final Player p = Bukkit.getServer().getPlayer(playerno.get(i + ""));
 				alive = true;
-				for (int size = 0; size < 4; size++)
+				for (int size = 0; size < maxplayers; size++)
 				{
-					Player t = Bukkit.getPlayer(queue.get(size));
+					Player t = Bukkit.getPlayer(playerno.get(size + ""));
 					t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " is player " + ChatColor.GOLD + (i + 1) + ChatColor.GREEN + "!");
 				}
 				taskID = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
@@ -315,17 +319,17 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 				    @Override
 				    public void run()
 				    {
-						for (int size = 0; size < 4; size++)
+						for (int size = 0; size < maxplayers; size++)
 						{
-							Player t = Bukkit.getPlayer(queue.get(size));
+							Player t = Bukkit.getPlayer(playerno.get(size + ""));
 							t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " is starting in " + ChatColor.GOLD + count + ChatColor.GREEN + "...");
 						}
 				        count--;
 				        if(count == 0)
 				        {
-							for (int size = 0; size < 4; size++)
+							for (int size = 0; size < maxplayers; size++)
 							{
-								Player t = Bukkit.getPlayer(queue.get(size));
+								Player t = Bukkit.getPlayer(playerno.get(size + ""));
 								t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " has started!");
 							}
 							World sw = Bukkit.getWorld(getConfig().getString("ingame.world"));
@@ -337,10 +341,11 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 							Location loc = new Location(sw, sx, sy, sz, syaw, spitch);
 							p.teleport(loc);
 							p.sendMessage(prefix + "The game has started!");
-				            cancelTask();
+				            Bukkit.getScheduler().cancelTask(taskID);
 				        }
 				    }
 				}, 0, 20);
+				
                 Material mat = Material.STAINED_CLAY;
                 int minx = getConfig().getInt("wall.min.x");
                 int miny = getConfig().getInt("wall.min.y");
@@ -362,31 +367,33 @@ import com.sk89q.worldedit.bukkit.selections.Selection;
 	                }
 	                moveWall(minx, miny, minz, maxx, maxy, maxz, p);
 	                if(alive == true){
-						for (int size = 0; size < 4; size++)
+						for (int size = 0; size < maxplayers; size++)
 						{
-							Player t = Bukkit.getPlayer(queue.get(size));
+							Player t = Bukkit.getPlayer(playerno.get(size + ""));
 							t.sendMessage(prefix + ChatColor.GOLD + p.getName() + ChatColor.GREEN + " completed round " + ChatColor.GOLD + round + ChatColor.GREEN + "!");
 						}
 	                }
                 }
 			}
+			
 			//At the end
 			ingame = false;
 			for (int i = 0; i < playerno.size(); i++)
 			{
 				Player t = Bukkit.getPlayer(playerno.get(i + ""));
 				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "sudo " + t.getName() + " spawn");
-				 
 			}
 			playerno.clear();
 		}
+		
 		public void moveWall(final int min, final int miny, final int minz, final int max,final int maxy,final int maxz, final Player p){
 			taskID = this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
 			{
 			    int count = 10;
 			    int minx = min;
 			    int maxx = max;
-			    @Override
+			    @SuppressWarnings("deprecation")
+				@Override
 			    public void run()
 			    {
 	                for(int wx = minx;wx <= maxx; wx=wx+1){
